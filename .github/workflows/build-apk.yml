@@ -30,6 +30,7 @@ jobs:
           sed -i -E 's/(com\.android\.tools\.build:gradle:)[0-9.]+/\13.5.0/' bldsys/cmake/template/gradle/build.gradle.in
           sed -i 's/set(VKB_WARNINGS_AS_ERRORS ON/set(VKB_WARNINGS_AS_ERRORS OFF/' bldsys/cmake/global_options.cmake
           sed -i 's/arm64-v8a;armeabi-v7a/arm64-v8a/' bldsys/scripts/generate_android_gradle.sh
+          sed -i 's/find_package(Adb 1.0.39 REQUIRED)/return()/' bldsys/cmake/android_sync_folder.cmake
           chmod +x bldsys/scripts/generate_android_gradle.sh
           ./bldsys/scripts/generate_android_gradle.sh
           echo "sdk.dir=$ANDROID_HOME" > build/android_gradle/local.properties
@@ -52,3 +53,10 @@ jobs:
         with:
           name: apk
           path: build/android_gradle/build/outputs/apk/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-data
+          path: |
+            assets
+            shaders
