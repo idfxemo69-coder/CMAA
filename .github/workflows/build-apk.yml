@@ -18,17 +18,20 @@ jobs:
         with:
           gradle-version: 6.3
 
-      - name: Install NDK
+      - name: Install NDK and CMake
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;20.0.5594570"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;20.0.5594570" "cmake;3.10.2.4988404"
           echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/20.0.5594570" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/cmake/3.10.2.4988404/bin" >> $GITHUB_PATH
 
       - name: Generate Gradle project
         run: |
           sed -i -E 's/(com\.android\.tools\.build:gradle:)[0-9.]+/\13.5.0/' bldsys/cmake/template/gradle/build.gradle.in
           chmod +x bldsys/scripts/generate_android_gradle.sh
           ./bldsys/scripts/generate_android_gradle.sh
+          echo "sdk.dir=$ANDROID_HOME" > build/android_gradle/local.properties
+          echo "cmake.dir=$ANDROID_HOME/cmake/3.10.2.4988404" >> build/android_gradle/local.properties
 
       - name: Build
         run: |
