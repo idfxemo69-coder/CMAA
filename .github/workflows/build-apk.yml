@@ -1,0 +1,41 @@
+name: Build APK
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 6.3
+
+      - name: Install NDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;20.0.5594570"
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/20.0.5594570" >> $GITHUB_ENV
+
+      - name: Generate Gradle project
+        run: |
+          sed -i -E 's/(com\.android\.tools\.build:gradle:)[0-9.]+/\13.5.0/' bldsys/cmake/template/gradle/build.gradle.in
+          chmod +x bldsys/scripts/generate_android_gradle.sh
+          ./bldsys/scripts/generate_android_gradle.sh
+
+      - name: Build
+        run: |
+          cd build/android_gradle
+          gradle assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: build/android_gradle/build/outputs/apk/debug/*.apk
