@@ -32,6 +32,7 @@ jobs:
           ./bldsys/scripts/generate_android_gradle.sh
           echo "sdk.dir=$ANDROID_HOME" > build/android_gradle/local.properties
           echo "cmake.dir=$ANDROID_HOME/cmake/3.10.2.4988404" >> build/android_gradle/local.properties
+          echo "ndk.dir=$ANDROID_HOME/ndk/20.0.5594570" >> build/android_gradle/local.properties
 
       - name: Build
         run: |
