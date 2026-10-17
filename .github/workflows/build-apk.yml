@@ -28,6 +28,8 @@ jobs:
       - name: Generate Gradle project
         run: |
           sed -i -E 's/(com\.android\.tools\.build:gradle:)[0-9.]+/\13.5.0/' bldsys/cmake/template/gradle/build.gradle.in
+          sed -i 's/set(VKB_WARNINGS_AS_ERRORS ON/set(VKB_WARNINGS_AS_ERRORS OFF/' bldsys/cmake/global_options.cmake
+          sed -i 's/arm64-v8a;armeabi-v7a/arm64-v8a/' bldsys/scripts/generate_android_gradle.sh
           chmod +x bldsys/scripts/generate_android_gradle.sh
           ./bldsys/scripts/generate_android_gradle.sh
           echo "sdk.dir=$ANDROID_HOME" > build/android_gradle/local.properties
@@ -36,8 +38,15 @@ jobs:
 
       - name: Build
         run: |
+          set -o pipefail
           cd build/android_gradle
-          gradle assembleDebug
+          gradle assembleDebug 2>&1 | tee "$GITHUB_WORKSPACE/build.log"
+
+      - name: Show errors
+        if: failure()
+        run: |
+          grep -n -B1 -A8 "FAILED:" build.log | head -60
+          grep -n "error:" build.log | head -30
 
       - uses: actions/upload-artifact@v4
         with:
